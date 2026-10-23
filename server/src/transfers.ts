@@ -238,7 +238,7 @@ export class TransferService {
       { key: 'swapping', label: 'Solvers fill the swap', sub: 'competing market makers, one best price' },
       { key: 'usdc_settled', label: 'USDC lands on NEAR', sub: 'in the SikaSend treasury account' },
       { key: 'payout_pending', label: `Agent pays out to ${t.recipient.network}`, sub: t.payout?.lastError ? `retrying: ${t.payout.lastError}` : 'idempotent disbursement, retries on failure' },
-      { key: 'paid', label: `${t.recipient.name.split(' ')[0]} receives GH₵${t.quote.ghsOut.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, sub: 'SMS confirmation from the network' },
+      { key: 'paid', label: `${t.recipient.name.replace(/^(auntie|aunty|uncle|mr|mrs|ms)\.?\s+/i, '').split(' ')[0]} receives GH₵${t.quote.ghsOut.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, sub: 'SMS confirmation from the network' },
     ];
     const terminal = ['paid', 'refunded', 'failed', 'cancelled'].includes(t.status);
     const isDone = (key: string) => {

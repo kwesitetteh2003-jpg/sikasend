@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+  --color-ink-950: #060709;
+  --color-ink-900: #0a0b0e;
+  --color-ink-850: #0e1014;
+  --color-ink-800: #12141a;
+  --color-ink-700: #1a1d25;
+  --color-ink-600: #252932;
+  --color-ink-500: #3a3f4b;
+  --color-ink-400: #6b7280;
+  --color-ink-300: #9aa1ae;
+  --color-ink-200: #c9ced8;
+  --color-ink-100: #eceef3;
+  --color-gold: #f7c948;
+  --color-gold-dim: #b8902a;
+  --color-mint: #2fd47f;
+  --color-sky: #7aa2ff;
+  --color-ember: #ff5c5c;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--color-ink-950);
+  color: var(--color-ink-100);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+::selection { background: color-mix(in oklab, var(--color-gold) 35%, transparent); }
+
+.bg-stage {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(900px 500px at 12% -10%, rgba(247, 201, 72, 0.10), transparent 60%),
+    radial-gradient(800px 600px at 105% 10%, rgba(47, 212, 127, 0.07), transparent 60%),
+    radial-gradient(700px 500px at 50% 120%, rgba(122, 162, 255, 0.06), transparent 60%),
+    var(--color-ink-950);
+}
+.bg-grid {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 20%, transparent 75%);
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 30px 80px -30px rgba(0,0,0,.8);
+  backdrop-filter: blur(14px);
+}
+.hairline { border-color: rgba(255,255,255,.07); }
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--color-ink-400); }
+
+input, textarea, button { font: inherit; color: inherit; }
+input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid color-mix(in oklab, var(--color-gold) 70%, transparent); outline-offset: 2px; }
+input[type=number]::-webkit-inner-spin-button { display: none; }
+
+@keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+.skeleton { background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.10) 50%, rgba(255,255,255,.04) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 6px; }
+
+.scroll-thin::-webkit-scrollbar { width: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
