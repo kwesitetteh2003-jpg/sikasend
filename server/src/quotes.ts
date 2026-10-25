@@ -50,6 +50,16 @@ export class QuoteService {
     return q;
   }
 
+  snapshot(): Array<[string, { q: PricedQuote; resp: OneClickQuoteResponse }]> {
+    this.gc();
+    // keep the session small: only the newest few quotes can still be turned into a transfer
+    return [...this.store].sort((a, b) => b[1].q.createdAt.localeCompare(a[1].q.createdAt)).slice(0, 6);
+  }
+  restore(entries: Array<[string, { q: PricedQuote; resp: OneClickQuoteResponse }]>) {
+    this.store = new Map(entries);
+    this.gc();
+  }
+
   get(id: string): PricedQuote | undefined {
     const e = this.store.get(id);
     return e?.q;

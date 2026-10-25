@@ -37,6 +37,9 @@ export function Send({ cfg }: { cfg: AppConfig }) {
   const origin = cfg.origins.find((o) => o.id === originId)!;
   const amt = Number(amount);
   const valid = Number.isFinite(amt) && amt > 0;
+  const quoteKey = `${amt}|${currency}|${originId}`;
+  const [quoteFor, setQuoteFor] = useState('');
+  const stale = quoteFor !== quoteKey; // inputs changed since this quote was priced
 
   const fetchQuote = useCallback(async () => {
     if (!valid) { setQuote(null); setQError(null); return; }
@@ -44,7 +47,7 @@ export function Send({ cfg }: { cfg: AppConfig }) {
     setQLoading(true); setQError(null);
     try {
       const q = await api.quote(amt, currency, originId);
-      if (id === reqId.current) setQuote(q);
+      if (id === reqId.current) { setQuote(q); setQuoteFor(`${amt}|${currency}|${originId}`); }
     } catch (e) {
       if (id === reqId.current) { setQuote(null); setQError(e instanceof Error ? e.message : 'Quote failed'); }
     } finally { if (id === reqId.current) setQLoading(false); }
@@ -88,7 +91,7 @@ export function Send({ cfg }: { cfg: AppConfig }) {
   }, [quote, cfg.limits, contact, via, flagged]);
 
   const submit = async () => {
-    if (!quote) return;
+    if (!quote || qLoading || stale) return; // never send a stale quote while a re-price is in flight
     setSending(true); setBlocked(null);
     try {
       const t = await api.create({ quoteId: quote.id, contactId, purpose: purpose || undefined, initiatedBy: via, agentFlagged: via === 'agent' ? flagged : undefined });
@@ -238,7 +241,7 @@ export function Send({ cfg }: { cfg: AppConfig }) {
               )}
             </AnimatePresence>
             {verdict && <div className="mb-3 flex items-center justify-between text-[12.5px]"><span className="text-ink-400">Policy verdict</span><span className={verdict.outcome === 'allow' ? 'text-mint' : verdict.outcome === 'review' ? 'text-gold' : 'text-ember'}>{verdict.outcome === 'allow' ? 'Auto-approved, sends immediately' : verdict.outcome === 'review' ? 'Will pause for your approval' : 'Will be blocked'}</span></div>}
-            <motion.button whileTap={{ scale: 0.985 }} onClick={submit} disabled={!quote || sending || !quote.signatureValid}
+            <motion.button whileTap={{ scale: 0.985 }} onClick={submit} disabled={!quote || qLoading || stale || sending || !quote.signatureValid}
               className="group relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gold text-[15px] font-semibold text-ink-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40">
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
               {sending ? <Spinner /> : <>

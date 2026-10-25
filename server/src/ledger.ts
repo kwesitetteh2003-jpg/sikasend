@@ -38,6 +38,10 @@ export class Ledger {
     return { ok: true, length: this.entries.length, head: prev };
   }
 
+  /** Session support: the hosted demo keeps each visitor's chain in their own signed session. */
+  snapshot(): LedgerEntry[] { return this.entries.map((e) => ({ ...e })); }
+  restore(entries: LedgerEntry[]) { this.entries = entries.map((e) => ({ ...e })); }
+
   /** test helper only */
   _tamper(seq: number, patch: Partial<LedgerEntry>) { Object.assign(this.entries[seq]!, patch); }
 }

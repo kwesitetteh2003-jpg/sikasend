@@ -34,6 +34,12 @@ export class SimulatedMomo implements PayoutProvider {
   private done = new Map<string, DisburseResult>();
   constructor(private chaos = true) {}
 
+  snapshot() { return { attempts: [...this.attempts], done: [...this.done] }; }
+  restore(s: { attempts?: Array<[string, number]>; done?: Array<[string, DisburseResult]> }) {
+    this.attempts = new Map(s.attempts ?? []);
+    this.done = new Map(s.done ?? []);
+  }
+
   async disburse(req: DisburseRequest): Promise<DisburseResult> {
     const prior = this.done.get(req.idempotencyKey);
     if (prior) return prior;

@@ -64,6 +64,12 @@ export class TransferService {
   private busy = new Set<string>();
   constructor(private d: Deps) {}
 
+  snapshot() { return { transfers: [...this.transfers.values()], history: this.history }; }
+  restore(s: { transfers?: Transfer[]; history?: { at: number; amountUsd: number; recipientKey: string }[] }) {
+    this.transfers = new Map((s.transfers ?? []).map((t) => [t.id, t]));
+    this.history = s.history ?? [];
+  }
+
   list(): Transfer[] { return [...this.transfers.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
   get(id: string): Transfer { const t = this.transfers.get(id); if (!t) throw new HttpError(404, 'Transfer not found'); return t; }
 

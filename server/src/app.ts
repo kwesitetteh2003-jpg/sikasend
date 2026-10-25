@@ -20,19 +20,42 @@ export interface AppOptions {
   fetchFn?: FetchLike;
   now?: () => number;
   payout?: PayoutProvider;
+  /** Reuse one FX cache across requests (the hosted demo builds an app per request). */
+  fx?: FxService;
+  /** Restore a visitor's demo session (see session.ts). */
+  session?: SessionState;
+}
+
+/** Everything a demo visitor owns: quotes, transfers, velocity history, their ledger chain, payout idempotency. */
+export interface SessionState {
+  v: 1;
+  quotes?: ReturnType<QuoteService['snapshot']>;
+  transfers?: ReturnType<TransferService['snapshot']>;
+  ledger?: ReturnType<Ledger['snapshot']>;
+  momo?: ReturnType<SimulatedMomo['snapshot']>;
 }
 
 export function createApp(opts: AppOptions = {}) {
   const cfg = opts.cfg ?? loadConfig();
   const fetchFn: FetchLike = opts.fetchFn ?? ((u, i) => fetch(u, i));
   const now = opts.now ?? Date.now;
-  const fx = new FxService(fetchFn, now);
+  const fx = opts.fx ?? new FxService(fetchFn, now);
   const oc = new OneClick(cfg, fetchFn);
   const quotes = new QuoteService(cfg, oc, fx, now);
   const ledger = new Ledger(now);
   const payout = opts.payout ?? new SimulatedMomo(cfg.chaos);
   const near = new NearReader(cfg.nearRpc, fetchFn);
   const transfers = new TransferService({ cfg, quotes, oc, ledger, payout, contacts: CONTACTS, now });
+  if (opts.session) {
+    quotes.restore(opts.session.quotes ?? []);
+    transfers.restore(opts.session.transfers ?? {});
+    ledger.restore(opts.session.ledger ?? []);
+    if (payout instanceof SimulatedMomo) payout.restore(opts.session.momo ?? {});
+  }
+  const snapshot = (): SessionState => ({
+    v: 1, quotes: quotes.snapshot(), transfers: transfers.snapshot(), ledger: ledger.snapshot(),
+    momo: payout instanceof SimulatedMomo ? payout.snapshot() : undefined,
+  });
 
   const app = express();
   app.disable('x-powered-by');
@@ -122,5 +145,5 @@ export function createApp(opts: AppOptions = {}) {
     res.status(500).json({ error: 'Internal error' });
   });
 
-  return { app, cfg, ledger, transfers, quotes };
+  return { app, cfg, ledger, transfers, quotes, snapshot };
 }
